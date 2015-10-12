@@ -8,3 +8,6 @@ puts 'Conversor de gramáticas em notação de Wirth para a forma de Autômatos 
      'Adriano Dennanni - NUSP 8043308', ''
 
 
+puts 'Digite o nome do arquivo na pasta "/gramaticas" contendo a gramática na Notação de Wirth:'
+
+analise_lexica(  '')    #gets.chomp)
