@@ -10,4 +10,4 @@ puts 'Conversor de gramáticas em notação de Wirth para a forma de Autômatos 
 
 puts 'Digite o nome do arquivo na pasta "/gramaticas" contendo a gramática na Notação de Wirth:'
 
-analise_lexica(  '')    #gets.chomp)
+analise_sintatica(analise_lexica('g1.txt')) #gets.chomp))

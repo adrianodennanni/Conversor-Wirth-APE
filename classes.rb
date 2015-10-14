@@ -72,17 +72,20 @@ class Estado
 
 end
 
-
-
 class Submaquina
 
-  def initialize(nome)
-    @nome=nome
+  def initialize
+    @primaria=false
   end
 
   def get_nome
     @nome
   end
+
+  def set_nome(nome)
+    @nome=nome
+  end
+
 
   def set_estado_inicial(estado)
     @estado_inicial=estado
@@ -98,6 +101,50 @@ class Submaquina
 
   def is_primaria?
     @primaria
+  end
+
+
+end
+
+class AutomatoDePilhaEstruturado
+
+  def initialize()
+    @submaquinas= {} # As submaquinas serão armazenados em um hash
+    @nome_maquina_inicial=nil
+    @estados_aceitacao=[]
+    @pilha=[]
+  end
+
+  def add_submaquina(nome, submaquina)
+    @submaquinas[nome] = submaquina
+  end
+
+  def get_submaquina(submaquina)
+    @submaquinas[submaquina]
+  end
+
+  def set_submaquina_inicial(nome)
+    @nome_maquina_inicial=nome
+  end
+
+  def get_submaquina_inicial
+    @nome_maquina_inicial
+  end
+
+  def empilha(estado)
+    @pilha << estado
+  end
+
+  def desempilha_e_retorna
+    @pilha.pop
+  end
+
+  def add_estados_aceitacao(estado)
+    @estados_aceitacao << estado
+  end
+
+  def get_estados_aceitacao
+    @estados_aceitacao
   end
 
 

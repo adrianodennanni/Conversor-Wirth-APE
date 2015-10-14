@@ -3,7 +3,6 @@ require './classes'
 
 def analise_lexica(nome_do_arquivo)
 
-  nome_do_arquivo='g1.txt' ### EXCLUIR
   arquivo = File.read(File.dirname(__FILE__)+'/gramaticas/'+nome_do_arquivo.chomp, :encoding => 'utf-8').strip
 
   # Este bloco lê o arquivo de entrada e o subdivide em um vetor de vetores. Cada vetor representa
@@ -33,45 +32,48 @@ def analise_lexica(nome_do_arquivo)
     regra_n.each_with_index do |char, j|
       case char
         when '='
-          wirth[indice_regra] << Termo.new(char, :definicao)
+          wirth[indice_regra] << Termo.new(char, 'definicao')
 
         when '.'
-          wirth[indice_regra] << Termo.new(char, :fim_de_regra)
+          wirth[indice_regra] << Termo.new(char, 'fim_de_regra')
 
         when '('
-          termo = Termo.new(char, :parenteses)
-          termo.set_lado(:abre)
+          termo = Termo.new(char, 'parenteses')
+          termo.set_lado('abre')
           wirth[indice_regra] << termo
 
         when ')'
-          termo = Termo.new(char, :parenteses)
-          termo.set_lado(:fecha)
+          termo = Termo.new(char, 'parenteses')
+          termo.set_lado(:'fecha')
           wirth[indice_regra] << termo
 
         when '['
-          termo = Termo.new(char, :colchetes)
-          termo.set_lado(:abre)
+          termo = Termo.new(char, 'colchetes')
+          termo.set_lado('abre')
           wirth[indice_regra] << termo
 
         when ']'
-          termo = Termo.new(char, :colchetes)
-          termo.set_lado(:fecha)
+          termo = Termo.new(char, 'colchetes')
+          termo.set_lado('fecha')
           wirth[indice_regra] << termo
 
         when '{'
-          termo = Termo.new(char, :chaves)
-          termo.set_lado(:abre)
+          termo = Termo.new(char, 'chaves')
+          termo.set_lado('abre')
           wirth[indice_regra] << termo
 
         when '}'
-          termo = Termo.new(char, :chaves)
-          termo.set_lado(:fecha)
+          termo = Termo.new(char, 'chaves')
+          termo.set_lado('fecha')
           wirth[indice_regra] << termo
+
+        when '|'
+          wirth[indice_regra] << Termo.new(char, 'separador')
 
         when ' '
           # Espaço, não deve fazer nada
 
-        else
+        else # Caso não seja nenhum dos caracteres acima
 
           if caracteres_validos_para_nomes.include? char  # Se não for um dos casos acima, é tratado aqui, como T ou NT
 
@@ -79,7 +81,7 @@ def analise_lexica(nome_do_arquivo)
               if term_aberto # Fecha aspas
                 term_aberto = false
                 term_buffer << char
-                termo = Termo.new(term_buffer, :terminal)
+                termo = Termo.new(term_buffer, 'terminal')
                 wirth[indice_regra] << termo
                 term_buffer = ''
 
@@ -97,26 +99,47 @@ def analise_lexica(nome_do_arquivo)
               end
 
               unless caracteres_validos_para_nomes.include? regra_n[j+1]
-                termo = Termo.new(term_buffer, :nao_terminal)
+                termo = Termo.new(term_buffer, 'nao_terminal')
                 wirth[indice_regra] << termo
                 term_buffer = ''
                 term_aberto = false
               end
-
             end
-
-
-
           end
-
-
       end
-
     end
     wirth << []
-
   end
+  puts 'Análise léxica concluída'
   wirth.pop
+  wirth # Retorna os tokens
+end
 
+def analise_sintatica(regras)
+
+
+  automato = AutomatoDePilhaEstruturado.new # Criação do autômato
+  regras.each_with_index do |regra, n_regra|
+    submaquina = Submaquina.new
+    # Para cada regra temos uma submáquina
+    regra.each_with_index do |token, n_token|
+
+      if n_token == 0 # Se o token for o primeiro, significa que é o nome da submáquina
+        submaquina.set_nome(token.get_nome)
+      elsif token.get_tipo == ('definicao' or 'fim_de_regra') # Se for o '=' ou '.', não faça nada, só pule
+
+      else # Para todos os outros casos
+        # TODO Rotina de criação de estados e transições a partir da regra
+
+      end
+    end
+
+    # Agora a submáquina é inserida dentro do autômato
+    if n_regra == 0 # Se for a primeira regra, significa que é a primeira submáquina, a raiz.
+      submaquina.set_primaria(true)
+      automato.set_submaquina_inicial(submaquina.get_nome)
+    end
+    automato.add_submaquina(submaquina.get_nome, submaquina)
+  end
 end
 
