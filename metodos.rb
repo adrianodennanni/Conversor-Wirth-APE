@@ -119,17 +119,22 @@ def analise_sintatica(regras)
 
 
   automato = AutomatoDePilhaEstruturado.new # Criação do autômato
+
   regras.each_with_index do |regra, n_regra|
-    submaquina = Submaquina.new
-    # Para cada regra temos uma submáquina
+
+    submaquina = Submaquina.new # Para cada regra temos uma submáquina
+
+
+    # Esta parte do código se refere ao algoritmo apresentado na aula 3, disponível em https://goo.gl/RwYL4H
+    pilha=[]
+
     regra.each_with_index do |token, n_token|
 
       if n_token == 0 # Se o token for o primeiro, significa que é o nome da submáquina
         submaquina.set_nome(token.get_nome)
       elsif token.get_tipo == ('definicao' or 'fim_de_regra') # Se for o '=' ou '.', não faça nada, só pule
-
       else # Para todos os outros casos
-        # TODO Rotina de criação de estados e transições a partir da regra
+
 
       end
     end
