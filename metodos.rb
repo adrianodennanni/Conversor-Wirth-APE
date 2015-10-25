@@ -128,7 +128,7 @@ def analise_sintatica(regras)
 
     # Esta pilha armazenas as aberturas de parenteses/chaves/colchetes/barras verticais para controle de estados
     pilha=[]
-    estado = 0
+    n_estado = 1
     contador = 2
 
 
@@ -137,7 +137,22 @@ def analise_sintatica(regras)
 
       if n_token == 0 # Se o token for o primeiro, significa que é o nome da submáquina
         submaquina.set_nome(token.get_nome)
-      elsif token.get_tipo == 'definicao' # Se for '=', não faça nada, só pule
+      elsif token.get_tipo == 'definicao' # Se for '=', crie os estados inicial e final
+        # Estado Inicial
+        estado = Estado.new(0)
+        estado.set_como_inicial
+        submaquina.set_estado(estado)
+
+        # Estado Final
+        estado = Estado.new(1)
+        estado.set_como_aceitacao
+        submaquina.set_estado(estado)
+
+        # Coloca na pilha esse par
+        pilha << [submaquina.get_estado(0), submaquina.get_estado(1)]
+
+        # Define como estado anterior o Estado 0
+        @estado_anterior = submaquina.get_estado(0)
       end
 
 
@@ -148,14 +163,97 @@ def analise_sintatica(regras)
         case token.get_tipo
 
           when 'terminal'
+            # Soma mais 1 aos contadores
+            n_estado+=1
+            contador+=1
+
+            # Verifica se já existe um próximo estado. Se não existe, cria ele
+            if submaquina.get_estado(n_estado).nil?
+              submaquina.set_estado(Estado.new(n_estado))
+            end
+            @estado_anterior.set_proximo_estado(token.get_nome, submaquina.get_estado(n_estado))
+            @estado_anterior=submaquina.get_estado(n_estado)
 
           when 'nao_terminal'
           when 'parenteses'
-          when 'parenteses'
-          when 'colchetes'
-          when 'chaves'
-          when 'fim_de_regra'
+                      # No caso de abrir parenteses
+                      if token.get_lado == 'abre'
+                        # Soma mais 1 aos contadores
+                        contador +=1
+                        n_estado+=1
 
+                        # Nesta situação somente empilha os estados relativos ao início e fim do parenteses
+                        if submaquina.get_estado(n_estado).nil?
+                          submaquina.set_estado(Estado.new(n_estado))
+                        end
+                        pilha << [@estado_anterior, submaquina.get_estado(n_estado)]
+
+                        # No caso de fechar parenteses
+                      else
+                        @estado_anterior.set_proximo_estado('ε', pilha[-1][1])
+                        @estado_anterior=submaquina.get_estado(pilha[-1][1].get_nome)
+                        pilha.pop
+
+
+                      end
+
+          when 'colchetes'
+            if token.get_lado == 'abre'
+              # Soma mais 1 aos contadores
+              contador +=1
+              n_estado+=1
+
+              # Nesta situação somente empilha os estados relativos ao início e fim do parenteses
+              if submaquina.get_estado(n_estado).nil?
+                submaquina.set_estado(Estado.new(n_estado))
+              end
+              pilha << [@estado_anterior, submaquina.get_estado(n_estado)]
+              @estado_anterior.set_proximo_estado('ε', submaquina.get_estado(n_estado))
+
+            else
+              @estado_anterior.set_proximo_estado('ε', pilha[-1][1])
+              @estado_anterior=submaquina.get_estado(pilha[-1][1].get_nome)
+              pilha.pop
+
+            end
+
+          when 'chaves'
+            if token.get_lado == 'abre'
+              # Soma mais 1 aos contadores
+              contador +=1
+              n_estado+=1
+
+              # Cria o próximo estado caso não exista
+              if submaquina.get_estado(n_estado).nil?
+                submaquina.set_estado(Estado.new(n_estado))
+              end
+
+              # Gera a transição
+              @estado_anterior.set_proximo_estado('ε', submaquina.get_estado(n_estado))
+
+              # Empilha
+              pilha << [submaquina.get_estado(n_estado), submaquina.get_estado(n_estado)]
+
+              # Atualiza o estado anterior
+              @estado_anterior=submaquina.get_estado(n_estado)
+
+            else
+              @estado_anterior.set_proximo_estado('ε', pilha[-1][1])
+              @estado_anterior=submaquina.get_estado(pilha[-1][1].get_nome)
+              pilha.pop
+            end
+
+          when 'separador'
+            @estado_anterior.set_proximo_estado('ε', pilha[-1][1])
+            @estado_anterior=submaquina.get_estado(pilha[-1][0].get_nome)
+
+          when 'fim_de_regra'
+            @estado_anterior.set_proximo_estado('ε', pilha[-1][1])
+            @estado_anterior=submaquina.get_estado(pilha[-1][1].get_nome)
+            pilha.pop
+
+          else
+            puts 'Algo ocorreu de errado durante a leitura'
         end
 
       end
