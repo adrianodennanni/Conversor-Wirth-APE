@@ -76,6 +76,7 @@ class Submaquina
 
   def initialize
     @primaria=false
+    @estados= {}
   end
 
   def get_nome
@@ -86,6 +87,13 @@ class Submaquina
     @nome=nome
   end
 
+  def get_estado(nome)
+    @estados[nome]
+  end
+
+  def set_estado(estado)
+    @estados[estado.get_nome]=estado
+  end
 
   def set_estado_inicial(estado)
     @estado_inicial=estado

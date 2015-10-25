@@ -75,9 +75,9 @@ def analise_lexica(nome_do_arquivo)
 
         else # Caso não seja nenhum dos caracteres acima
 
-          if caracteres_validos_para_nomes.include? char  # Se não for um dos casos acima, é tratado aqui, como T ou NT
+                  if caracteres_validos_para_nomes.include? char # Se não for um dos casos acima, é tratado aqui, como T ou NT
 
-            if char == '"'  # Abre aspas
+                    if char == '"' # Abre aspas
               if term_aberto # Fecha aspas
                 term_aberto = false
                 term_buffer << char
@@ -124,21 +124,42 @@ def analise_sintatica(regras)
 
     submaquina = Submaquina.new # Para cada regra temos uma submáquina
 
-
     # Esta parte do código se refere ao algoritmo apresentado na aula 3, disponível em https://goo.gl/RwYL4H
-    pilha=[]
 
+    # Esta pilha armazenas as aberturas de parenteses/chaves/colchetes/barras verticais para controle de estados
+    pilha=[]
+    estado = 0
+    contador = 2
+
+
+    # Neste bloco são postos valores nulos entre os tokens para escrever seus estados
     regra.each_with_index do |token, n_token|
 
       if n_token == 0 # Se o token for o primeiro, significa que é o nome da submáquina
         submaquina.set_nome(token.get_nome)
-      elsif token.get_tipo == ('definicao' or 'fim_de_regra') # Se for o '=' ou '.', não faça nada, só pule
-      else # Para todos os outros casos
+      elsif token.get_tipo == 'definicao' # Se for '=', não faça nada, só pule
+      end
 
+
+      # Nesta parte o algoritmo é aplicado
+
+      if n_token > 1
+
+        case token.get_tipo
+
+          when 'terminal'
+
+          when 'nao_terminal'
+          when 'parenteses'
+          when 'parenteses'
+          when 'colchetes'
+          when 'chaves'
+          when 'fim_de_regra'
+
+        end
 
       end
     end
-
     # Agora a submáquina é inserida dentro do autômato
     if n_regra == 0 # Se for a primeira regra, significa que é a primeira submáquina, a raiz.
       submaquina.set_primaria(true)
