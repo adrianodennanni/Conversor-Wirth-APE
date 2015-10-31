@@ -3,8 +3,9 @@
 # Cada estado é um objeto, para o programa manuseá-lo mais facilmente
 class Estado
 
-  def initialize(nome)
+  def initialize(nome, submaquina_mae)
     @nome=nome
+    @submaquina_mae = submaquina_mae
     @inicial=false
     @aceitacao=false
     @chamada_submaquina=false
@@ -61,6 +62,10 @@ class Estado
     @nome
   end
 
+  def get_submaquina_mae
+    @submaquina_mae
+  end
+
   def get_simbolos_validos
     @simbolos_validos
   end
@@ -77,6 +82,7 @@ class Submaquina
   def initialize
     @primaria=false
     @estados= {}
+    @alfabeto= ['ε']
   end
 
   def get_nome
@@ -111,6 +117,14 @@ class Submaquina
     @primaria
   end
 
+  def get_alfabeto
+    @alfabeto
+  end
+
+  def add_elemento_alfabeto(elemento)
+    @alfabeto << elemento
+  end
+
 
 end
 
@@ -121,6 +135,7 @@ class AutomatoDePilhaEstruturado
     @nome_maquina_inicial=nil
     @estados_aceitacao=[]
     @pilha=[]
+    @alfabeto=['ε']
   end
 
   def add_submaquina(nome, submaquina)
@@ -147,6 +162,14 @@ class AutomatoDePilhaEstruturado
     @pilha.pop
   end
 
+  def get_alfabeto
+    @alfabeto
+  end
+
+  def add_elemento_alfabeto(elemento)
+    @alfabeto << elemento
+  end
+
   def add_estados_aceitacao(estado)
     @estados_aceitacao << estado
   end
@@ -156,11 +179,79 @@ class AutomatoDePilhaEstruturado
   end
 
 
+  def run(nome_do_arquivo, verbose)
+    cadeia = File.read(File.dirname(__FILE__)+'/gramaticas/'+nome_do_arquivo.chomp, :encoding => 'utf-8').strip.split(' ')
+
+    _estado=@submaquinas[@nome_maquina_inicial].get_estado(0)
+
+    catch(:interrupcao) do
+      while cadeia.size > 0 do
+
+        unless @alfabeto.include? cadeia.first
+          puts (_estado.get_nome.to_s+' --'+cadeia.first+'--> ?') if verbose
+          puts "A cadeia não foi aceita pelo Autômato. O símbolo '#{cadeia.first}' não foi definido no Alfabeto do Autômato."
+          throw(:interrupcao)
+        end
+
+        unless unless _estado.get_simbolos_validos.include? cadeia.first or _estado.is_chamada_submaquina?
+
+                 if _estado.get_simbolos_validos.include? 'ε'
+                   if verbose
+                     print (_estado.get_nome.to_s+' --ε')
+                   end
+                   (_estado=_estado.consumir('ε'))
+                   if verbose
+                     puts ('--> '+_estado.get_nome.to_s)
+                   end
+
+                 else
+                   puts (_estado.get_nome.to_s+' --'+cadeia.first+'--> ?')
+                   puts "A cadeia não foi aceita pelo Autômato. O estado '#{_estado.get_nome}' não apresenta transições consumindo '#{cadeia.first}'."
+                   throw(:interrupcao)
+                 end
+               end
+        end
+
+        if _estado.is_chamada_submaquina?
+          if verbose
+            puts('O estado '+_estado.get_nome.to_s+' fez uma chamada para a máquina '+_estado.get_submaquina_chamada+
+                     ', empilhado o estado '+_estado.get_estado_retorno.get_nome.to_s)
+          end
+
+          @pilha << _estado.get_estado_retorno
+          _estado=@submaquinas[_estado.get_submaquina_chamada].get_estado_inicial
+
+        elsif _estado.is_aceitacao? and !@pilha.empty? and !_estado.get_submaquina_mae.is_primaria?
+          # Retorno
+          print('O estado '+_estado.get_nome.to_s+' realizou um retorno para o estado ') if verbose
+          _estado=@pilha.pop
+          puts(_estado.get_nome) if verbose
+
+
+        else
+          print (_estado.get_nome.to_s+' --') if verbose
+          elemento=cadeia.shift
+          print elemento if verbose
+          _estado=_estado.consumir(elemento)
+          puts ('--> '+_estado.get_nome.to_s) if verbose
+        end
+      end
+
+      if _estado.is_aceitacao?
+        puts('A cadeia foi aceita pelo autômato.')
+      else
+        puts('O estado alcancado '+_estado.get_nome.to_s+' não é de aceitação. A cadeia foi recusada.')
+      end
+    end
+
+  end
+
+
 end
 
 class Termo
 
-  def initialize(nome,tipo)
+  def initialize(nome, tipo)
     @nome=nome
     @tipo=tipo
   end

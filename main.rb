@@ -10,4 +10,17 @@ puts 'Conversor de gramáticas em notação de Wirth para a forma de Autômatos 
 
 puts 'Digite o nome do arquivo na pasta "/gramaticas" contendo a gramática na Notação de Wirth:'
 
-analise_sintatica(analise_lexica('g1.txt')) #gets.chomp))
+automato = analise_sintatica(analise_lexica('beatlemania.txt')) #gets.chomp))
+
+puts 'Deseja executar o autômato? (s/n)'
+#if gets.chomp == 's'
+puts 'Deseja ativar o modo verbose? (s/n)'
+# verbose=gets.chomp
+#if verbose == 's' then verbose=true else verbose = false
+verbose = true
+
+puts 'Digite o nome do arquivo: '
+automato.run('programa.txt', verbose) #gets.chomp)
+#end
+
+print 'ACABOOOU É TEEEEEETRAAAAAA'

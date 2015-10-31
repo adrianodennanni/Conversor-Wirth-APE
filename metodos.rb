@@ -15,7 +15,7 @@ def analise_lexica(nome_do_arquivo)
   term_aberto = false
 
   # Lista de todos os caracteres que são válidos como nomes de Terminais e N-Terminais
-  caracteres_validos_para_nomes = 'a'.upto('z').to_a + 0.upto(9).to_a + 'A'.upto('Z').to_a + %w(- _ ")
+  caracteres_validos_para_nomes = 'a'.upto('z').to_a + 'A'.upto('Z').to_a + %w{- _ " , ; 0 1 2 3 4 5 6 7 8 9 < > = + - * / @ $ :}
 
 
   arquivo.split(//).each do |char| # Separa letra a letra
@@ -29,23 +29,36 @@ def analise_lexica(nome_do_arquivo)
 
   gramatica.each_with_index do |regra_n, indice_regra|
 
+    first_equal=true
     regra_n.each_with_index do |char, j|
       case char
         when '='
-          wirth[indice_regra] << Termo.new(char, 'definicao')
+          if first_equal
+            wirth[indice_regra] << Termo.new(char, 'definicao')
+            first_equal=false
+          else
+            term_buffer << char
+          end
 
         when '.'
           wirth[indice_regra] << Termo.new(char, 'fim_de_regra')
 
         when '('
-          termo = Termo.new(char, 'parenteses')
-          termo.set_lado('abre')
-          wirth[indice_regra] << termo
-
+          if term_aberto
+            term_buffer << char
+          else
+            termo = Termo.new(char, 'parenteses')
+            termo.set_lado('abre')
+            wirth[indice_regra] << termo
+          end
         when ')'
-          termo = Termo.new(char, 'parenteses')
-          termo.set_lado(:'fecha')
-          wirth[indice_regra] << termo
+          if term_aberto
+            term_buffer << char
+          else
+            termo = Termo.new(char, 'parenteses')
+            termo.set_lado(:'fecha')
+            wirth[indice_regra] << termo
+          end
 
         when '['
           termo = Termo.new(char, 'colchetes')
@@ -110,7 +123,7 @@ def analise_lexica(nome_do_arquivo)
     end
     wirth << []
   end
-  puts 'Análise léxica concluída'
+  puts 'Análise léxica concluída.'
   wirth.pop
   wirth << nome_do_arquivo
   wirth # Retorna os tokens
@@ -126,7 +139,7 @@ def analise_sintatica(regras)
   open(File.dirname(__FILE__)+'/gramaticas/'+nome_do_arquivo+'.aut', 'w') { |arquivo|
 
 
-    automato = AutomatoDePilhaEstruturado.new # Criação do autômato
+    @automato = AutomatoDePilhaEstruturado.new # Criação do autômato
 
     regras.each_with_index do |regra, n_regra|
 
@@ -145,16 +158,22 @@ def analise_sintatica(regras)
 
         if n_token == 0 # Se o token for o primeiro, significa que é o nome da submáquina
           submaquina.set_nome(token.get_nome)
+          # Escrita do nome da submáquina no arquivo
+          arquivo << 'Máquina '
+          arquivo << token.get_nome
+          arquivo << "\n"
         elsif token.get_tipo == 'definicao' # Se for '=', crie os estados inicial e final
           # Estado Inicial
-          estado = Estado.new(0)
+          estado = Estado.new(0, submaquina)
           estado.set_como_inicial
           submaquina.set_estado(estado)
+          submaquina.set_estado_inicial(estado)
 
           # Estado Final
-          estado = Estado.new(1)
+          estado = Estado.new(1, submaquina)
           estado.set_como_aceitacao
           submaquina.set_estado(estado)
+          @automato.add_estados_aceitacao(estado) if n_regra == 0
 
           # Coloca na pilha esse par
           pilha << [submaquina.get_estado(0), submaquina.get_estado(1)]
@@ -177,7 +196,7 @@ def analise_sintatica(regras)
 
               # Verifica se já existe um próximo estado. Se não existe, cria ele
               if submaquina.get_estado(n_estado).nil?
-                submaquina.set_estado(Estado.new(n_estado))
+                submaquina.set_estado(Estado.new(n_estado, submaquina))
               end
 
               # Escreve no arquivo essa transição
@@ -188,8 +207,18 @@ def analise_sintatica(regras)
               arquivo << submaquina.get_estado(n_estado).get_nome
               arquivo << "\n"
 
+              # Adiciona o token ao alfabeto da submáquina
+              unless submaquina.get_alfabeto.include? token.get_nome[1..-2]
+                submaquina.add_elemento_alfabeto(token.get_nome[1..-2])
+              end
+
+              # Adiciona o token ao alfabeto do autômato
+              unless @automato.get_alfabeto.include? token.get_nome[1..-2]
+                @automato.add_elemento_alfabeto(token.get_nome[1..-2])
+              end
+
               # Salva a transição
-              @estado_anterior.set_proximo_estado(token.get_nome, submaquina.get_estado(n_estado))
+              @estado_anterior.set_proximo_estado(token.get_nome[1..-2], submaquina.get_estado(n_estado))
               @estado_anterior=submaquina.get_estado(n_estado)
 
 
@@ -200,7 +229,7 @@ def analise_sintatica(regras)
 
               # Verifica se já existe um próximo estado. Se não existe, cria ele
               if submaquina.get_estado(n_estado).nil?
-                submaquina.set_estado(Estado.new(n_estado))
+                submaquina.set_estado(Estado.new(n_estado, submaquina))
               end
 
               # Escreve no arquivo essa transição
@@ -211,11 +240,20 @@ def analise_sintatica(regras)
               arquivo << submaquina.get_estado(n_estado).get_nome
               arquivo << "\n"
 
+              # Adiciona o token ao alfabeto da submáquina
+              unless submaquina.get_alfabeto.include? token.get_nome
+                submaquina.add_elemento_alfabeto(token.get_nome)
+              end
+
+              # Adiciona o token ao alfabeto do autômato
+              unless @automato.get_alfabeto.include? token.get_nome
+                @automato.add_elemento_alfabeto(token.get_nome)
+              end
+
               # Salva a transição
               @estado_anterior.set_estado_retorno(submaquina.get_estado(n_estado))
               @estado_anterior.set_como_chamada_submaquina
               @estado_anterior.set_submaquina_chamada(token.get_nome)
-              automato.empilha(submaquina.get_estado(n_estado))
               @estado_anterior=submaquina.get_estado(n_estado)
 
             when 'parenteses'
@@ -227,7 +265,7 @@ def analise_sintatica(regras)
 
                 # Nesta situação somente empilha os estados relativos ao início e fim do parenteses
                 if submaquina.get_estado(n_estado).nil?
-                  submaquina.set_estado(Estado.new(n_estado))
+                  submaquina.set_estado(Estado.new(n_estado, submaquina))
                 end
                 pilha << [@estado_anterior, submaquina.get_estado(n_estado)]
 
@@ -257,7 +295,7 @@ def analise_sintatica(regras)
 
                 # Nesta situação somente empilha os estados relativos ao início e fim do parenteses
                 if submaquina.get_estado(n_estado).nil?
-                  submaquina.set_estado(Estado.new(n_estado))
+                  submaquina.set_estado(Estado.new(n_estado, submaquina))
                 end
                 pilha << [@estado_anterior, submaquina.get_estado(n_estado)]
 
@@ -295,7 +333,7 @@ def analise_sintatica(regras)
 
                 # Cria o próximo estado caso não exista
                 if submaquina.get_estado(n_estado).nil?
-                  submaquina.set_estado(Estado.new(n_estado))
+                  submaquina.set_estado(Estado.new(n_estado, submaquina))
                 end
 
                 # Escreve no arquivo essa transição
@@ -361,13 +399,17 @@ def analise_sintatica(regras)
 
         end
       end
+      arquivo << "\n"
       # Agora a submáquina é inserida dentro do autômato
       if n_regra == 0 # Se for a primeira regra, significa que é a primeira submáquina, a raiz.
         submaquina.set_primaria(true)
-        automato.set_submaquina_inicial(submaquina.get_nome)
+        @automato.set_submaquina_inicial(submaquina.get_nome)
       end
-      automato.add_submaquina(submaquina.get_nome, submaquina)
+      @automato.add_submaquina(submaquina.get_nome, submaquina)
     end
   }
-end
+  puts 'Autômato gerado. Nome do arquivo contendo informações do autômato: '+nome_do_arquivo+'.aut'
 
+  # Retorna o Autômato
+  @automato
+end
