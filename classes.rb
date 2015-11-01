@@ -213,13 +213,26 @@ class AutomatoDePilhaEstruturado
         end
 
         if _estado.is_chamada_submaquina?
-          if verbose
-            puts('O estado '+_estado.get_nome.to_s+' fez uma chamada para a máquina '+_estado.get_submaquina_chamada+
-                     ', empilhado o estado '+_estado.get_estado_retorno.get_nome.to_s)
+
+          # Verifica se há uma trasição normal antes de chamar uma submáquina
+          if _estado.get_simbolos_validos.include? cadeia[0]
+            print (_estado.get_nome.to_s+' --') if verbose
+            elemento=cadeia.shift
+            print elemento if verbose
+            _estado=_estado.consumir(elemento)
+            puts ('--> '+_estado.get_nome.to_s) if verbose
+
+
+          else
+            if verbose
+              puts('O estado '+_estado.get_nome.to_s+' fez uma chamada para a máquina '+_estado.get_submaquina_chamada+
+                       ', empilhado o estado '+_estado.get_estado_retorno.get_nome.to_s)
+            end
+
+            @pilha << _estado.get_estado_retorno
+            _estado=@submaquinas[_estado.get_submaquina_chamada].get_estado_inicial
           end
 
-          @pilha << _estado.get_estado_retorno
-          _estado=@submaquinas[_estado.get_submaquina_chamada].get_estado_inicial
 
         elsif _estado.is_aceitacao? and !@pilha.empty? and !_estado.get_submaquina_mae.is_primaria?
           # Retorno
@@ -237,11 +250,25 @@ class AutomatoDePilhaEstruturado
         end
       end
 
-      if _estado.is_aceitacao?
-        puts('A cadeia foi aceita pelo autômato.')
-      else
-        puts('O estado alcancado '+_estado.get_nome.to_s+' não é de aceitação. A cadeia foi recusada.')
+      catch(:fim) do
+        loop do
+          if _estado.is_aceitacao?
+            puts('A cadeia foi aceita pelo autômato.')
+            throw(:fim)
+          else
+            if _estado.consumir('ε').nil?
+              puts('O estado alcancado '+_estado.get_nome.to_s+' não é de aceitação. A cadeia foi recusada.')
+              throw(:fim)
+            else
+              _estado=_estado.consumir('ε')
+            end
+
+          end
+        end
+
+
       end
+
     end
 
   end

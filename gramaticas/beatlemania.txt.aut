@@ -1,34 +1,31 @@
-Máquina Program
-0,Block,2
-2,ε,1
-
 Máquina Block
-0,"LET",2
-2,"IT",3
-3,"BE",4
-4,ε,5
-5,Declaration,6
-6,ε,5
-5,StatementList,7
+0,"VARDEC",2
+2,Variable_Declaration,3
+3,"LET",4
+4,"IT",5
+5,"BE",6
+6,StatementList,7
 7,"THE",8
 8,"END",9
 9,ε,1
 
-Máquina Declaration
-0,"WORDS",3
-3,"OF",4
-4,"WISDOM",5
-5,ε,2
-0,"NUMBER",6
-6,"NINE",7
-7,ε,2
-2,id,8
-8,ε,9
-9,",",10
-10,id,11
-11,ε,9
-9,";",12
-12,ε,1
+Máquina Variable_Declaration
+0,ε,2
+2,"WORDS",4
+4,"OF",5
+5,"WISDOM",6
+6,ε,3
+2,"NUMBER",7
+7,"NINE",8
+8,ε,3
+3,id,9
+9,ε,10
+10,",",11
+11,id,12
+12,ε,10
+10,";",13
+13,ε,2
+2,ε,1
 
 Máquina StatementList
 0,ε,2
@@ -152,7 +149,7 @@ Máquina Exp3
 5,ε,4
 2,id,6
 6,ε,4
-2,num,7
+2,number,7
 7,ε,4
 2,"(",8
 8,Expression,9
@@ -392,7 +389,7 @@ Máquina id
 117,ε,55
 55,ε,1
 
-Máquina num
+Máquina number
 0,"0",3
 3,ε,2
 0,"1",4
