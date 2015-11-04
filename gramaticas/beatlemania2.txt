@@ -1,2 +1,0 @@
-Program = "LET" "IT" "BE" {Block} "THE" "END".
-Block = .

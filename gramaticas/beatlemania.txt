@@ -1,14 +1,24 @@
-Block =  "VARDEC" Variable_Declaration "LET" "IT" "BE" StatementList "THE" "END" .
-Variable_Declaration = {("WORDS" "OF" "WISDOM" | "NUMBER" "NINE") id { "," id } ";"} .
-StatementList = [id ":"] [Statement] {";" [id ":"] [Statement]} .
-Statement =  Assignment | Transfer | Conditional | Write | Block .
-Assignment = Expression "=>" id { "=>" id} .
-Transfer = "GO" "HOME" id.
-Conditional = "WHAT" "WOULD" "YOU" "DO" "IF" Expression "THEN" "YOU" "BEGIN" StatementList ["ELSE" StatementList] "FI" .
-Write = "TWIST" "AND" "SHOUT" "(" Expression {"," Expression} ")" .
-Expression = Exp1 [ ( "<" | ">" | "=" ) Exp1 ].
+Program = "BEGIN" {Block} "END".
+
+Block = "VARDEC" "{" Vardec "}" | "FUNCTION"  Function  | "DECLARATION" "{" Declaration "}"  .
+
+Vardec =  { ( "CHAR" | "INTEGER") "id" [ "[" "num" "]" ] { "," "id" [ "[" "num" "]" ] } ";"}  .
+
+Function = ("CHAR" | "INTEGER") "id" "(" Vardec ")" "{" {Block} "RETURN" "id" ";" "}"  .
+
+Declaration =  {"LABEL" "id" [ "[" "num" "]" ] ";" | "ASSIGNMENT"  Assignment  | "IF" Conditional | "OUTPUT"  Write  }.
+
+Assignment = "id" [ "[" "num" "]" ] "=" Expression ";" .
+
+Conditional =   "("  Expression  ")"    "{" {Declaration}  "}"  { "ELSIF" "("  Expression  ")"    "{" {Declaration}  "}" } [ "ELSE"  "{"  {Declaration}  "}"  ] "END" .
+
+Write = Expression { "," Expression }  ";" .
+
+Expression = Exp1 [ ( "<" | ">" | "==" ) Exp1 ].
+
 Exp1 = Exp2 { ("+" | "-" ) Exp2 } .
+
 Exp2 = Exp3 { ("*" | "/" ) Exp3 } .
-Exp3 = ["-"] ( "INPUT" | id | number | "(" Expression ")" )  .
-id = ( "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z" | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" ) { "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z" | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" | "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" } .
-number = ("0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ) {"0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" } .
+
+Exp3 = ["-"] ( "INPUT" | "id" [ "[" "num" "]" | "("  Expression  { "," Expression } ")"  ] | "num" | "(" Expression ")" )  .
+

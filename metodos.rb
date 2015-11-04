@@ -61,24 +61,40 @@ def analise_lexica(nome_do_arquivo)
           end
 
         when '['
-          termo = Termo.new(char, 'colchetes')
-          termo.set_lado('abre')
-          wirth[indice_regra] << termo
+          if term_aberto
+            term_buffer << char
+          else
+            termo = Termo.new(char, 'colchetes')
+            termo.set_lado('abre')
+            wirth[indice_regra] << termo
+          end
 
         when ']'
-          termo = Termo.new(char, 'colchetes')
-          termo.set_lado('fecha')
-          wirth[indice_regra] << termo
+          if term_aberto
+            term_buffer << char
+          else
+            termo = Termo.new(char, 'colchetes')
+            termo.set_lado('fecha')
+            wirth[indice_regra] << termo
+          end
 
         when '{'
-          termo = Termo.new(char, 'chaves')
-          termo.set_lado('abre')
-          wirth[indice_regra] << termo
+          if term_aberto
+            term_buffer << char
+          else
+            termo = Termo.new(char, 'chaves')
+            termo.set_lado('abre')
+            wirth[indice_regra] << termo
+          end
 
         when '}'
-          termo = Termo.new(char, 'chaves')
-          termo.set_lado('fecha')
-          wirth[indice_regra] << termo
+          if term_aberto
+            term_buffer << char
+          else
+            termo = Termo.new(char, 'chaves')
+            termo.set_lado('fecha')
+            wirth[indice_regra] << termo
+          end
 
         when '|'
           wirth[indice_regra] << Termo.new(char, 'separador')
