@@ -22,6 +22,6 @@ if gets.chomp == 's'
     verbose = false
   end
   puts 'Digite o nome do arquivo: '
-  automato.run('programa.txt', verbose)
+  automato.run(gets.chomp, verbose)
 
 end
